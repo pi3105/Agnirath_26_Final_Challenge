@@ -43,6 +43,6 @@ Exeecution took 11.0m 14s
 ```
 ### Graphs generated
 #### SoC, Power output, Velocity and Acceleration Profile
-!(SoC, Power output, Velocity and Acceleration Profile)[./assets/Final_profiles.png]
+![SoC, Power output, Velocity and Acceleration Profile](./assets/Final_profiles.png)
 #### Loop heatmap
-!(Heatmap of loops vs SoC and Time)[./assets/loop_heatmap.png]
+![Heatmap of loops vs SoC and Time](./assets/loop_heatmap.png)
