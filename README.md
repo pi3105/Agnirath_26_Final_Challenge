@@ -23,8 +23,8 @@ Public repo containing my code for the final challenge along with the respective
 
 ## Computational Optimization
 - 2 models were used, one to optimize the velocity profile such that Zeerust is reached by a certain time and with a certain SoC, and the other to maximise number of loops taken around Zeerust for the given time reached and SoC.
-- Model 1 (used to optimize velocity profile) was computationally a lot heavier than Model 2 (loop maximization). So it isn't feasible to run Model 1 for all possible arrival time, SoC combinations. Hence I first created a heatmap depicting the maximum number of loops that can be achieved with repsect to the arrival time and the SoC at the time of arrival. Then by choosing only the lowest SoC for a given arrival time and maximum number of loops, I validated the feasiblity of the solution with Model 1.
-- Since there is a time limit of 10-15 minutes, it is not feasible to run the optimizations sequentially, that's when I turned to parallel computing. Using a maximum of 6 cores, I ran the optimizations in the order of highest number of loops first, that way I was gaurenteed to get the optimum result first.
+- Model 1 (used to optimize velocity profile) was computationally a lot heavier than Model 2 (loop maximization). So it isn't feasible to run Model 1 for all possible arrival time, SoC combinations. Hence I first created a heatmap depicting the maximum number of loops that can be achieved with respect to the arrival time and the SoC at the time of arrival. Then by choosing only the lowest SoC for a given arrival time and maximum number of loops, I validated the feasibility of the solution with Model 1.
+- Since there is a time limit of 10-15 minutes, it is not feasible to run the optimizations sequentially, that's when I turned to parallel computing. Using a maximum of 6 cores, I ran the optimizations in the order of highest number of loops first, that way I was guaranteed to get the optimum result first.
 - This computation took ~12 minutes on my laptop.
 
 ## Output
