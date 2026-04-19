@@ -2,9 +2,12 @@
 Public repo containing my code for the final challenge along with the respective plots, and csv files.
 
 ## System Architecture
-- **Strategy Engine:** Python 3.13 running on i7 13th Gen (10 cores)
-- **Modeling Environment:** NumPy (Vectorized Physics), SciPy (SLSQP Optimizer)
-
+```text
+- Strategy Engine: Python 3.13
+- Hardware: i7-13620H 13th Gen (10 Physical Cores)
+- Libraries: NumPy (Vectorized Physics), SciPy (SLSQP Optimizer)
+- Parallelization: concurrent.futures (Multi-processing across 6 cores)
+```
 ## Mathematical Assumptions
 - Straight-line physics assumed during loop maximization phase
 - Power losses due to electrical subsystems is 100W
