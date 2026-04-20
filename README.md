@@ -20,6 +20,7 @@ Public repo containing my code for the final challenge along with the respective
 - The velocity profile converges to a smooth curve of roughly constant velocity, this shows that the power cost of resisting the $v^3$ curve outweighs the beneficts of aggressive speed bursts.
 - During loop maximization phase, it is clearly visible that during the solar irradiance is decreasing as depicted by the decrease in the length of the vertical lines in the plot of SoC vs Distance. Hence the earlier that Zeerust is reached, the better.
 - The sigmoid ramps between loops depict the costs of stopping and starting.
+- There is a direct corelation between the gradient and power output as seen by the similarity of the graphs
 
 ## Computational Optimization
 - 2 models were used, one to optimize the velocity profile such that Zeerust is reached by a certain time and with a certain SoC, and the other to maximise number of loops taken around Zeerust for the given time reached and SoC.
