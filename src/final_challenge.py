@@ -14,6 +14,7 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from collections import OrderedDict
 from time import perf_counter
+import numba
 import constants as const
 
 worker_df=None
@@ -91,6 +92,54 @@ def generate_linear_ref(df, time_end, soc_end,total_dist):
 def get_solar_irradiance(secs_from_midnight):
     irradiance = const.PEAK_SOLAR_IRRADIANCE * np.exp(-((secs_from_midnight - const.MU)**2) / (2 * const.SIGMA**2))
     return irradiance
+import numba
+
+@numba.njit
+def calculate_soc_with_cap(start_soc, e_in, p_out, dt, battery_capacity, power_loss):
+    #This accurately handles the case if SoC>1
+    n = len(e_in)
+    soc_profile = np.empty(n)
+    current_soc = start_soc
+    
+    for i in range(n):
+        # Calculate the delta for this specific segment
+        energy_change = (e_in[i] - (p_out[i] + power_loss) * dt[i]) / battery_capacity
+        
+        # Apply the delta and CAP at 1.0 (100%)
+        current_soc = current_soc + energy_change
+        
+        if current_soc > 1.0:
+            current_soc = 1.0
+        elif current_soc < 0.0:
+            current_soc = 0.0 # Car is dead
+            
+        soc_profile[i] = current_soc
+        
+    return soc_profile
+def soc_calculator(v):
+    dt=const.SEG_LENGTH/v
+    t_end=const.START_TIME+np.cumsum(dt)
+    t_start=t_end-dt
+    constant_factor = const.PEAK_SOLAR_IRRADIANCE * const.SIGMA * np.sqrt(np.pi / 2)
+    
+    # Calculate the normalized bounds
+    z1 = (t_start - const.MU) / (const.SIGMA * np.sqrt(2))
+    z2 = (t_end - const.MU) / (const.SIGMA * np.sqrt(2))
+    
+    # The integral is the difference between the two error functions
+    e_in = constant_factor * (erf(z2) - erf(z1))
+    e_in=e_in*const.PANEL_EFFICIENCY*const.PANEL_AREA
+    full_dt=const.SEG_LENGTH/np.maximum(v,0.1)
+    dv=np.diff(v)
+    accel=dv/full_dt[:-1]
+    accel = np.append(accel, 0)
+    accel=np.clip(accel,-100,100)
+    p_mech=(const.DRAG_COEFF*v**2 + const.CRR*const.MASS*const.GRAVITY*(1-df['gradient']**2)**0.5 + const.MASS*accel+const.MASS*const.GRAVITY*df['gradient'])*v
+    p_out = np.where(p_mech < 0, 
+                p_mech * const.REGEN_EFFICIENCY,   # Used if p_mech is negative (Regen)
+                p_mech / const.MOTOR_EFFICIENCY)
+    curr_soc = calculate_soc_with_cap(const.START_SOC, e_in, p_out, dt, const.BATTERY_CAPACITY, const.POWER_LOSS)
+    return curr_soc
 
 def minimise_time(df,E_cap,time_end,soc_end,total_dist):
     def cost_function(v: np.array,df,x_ref):
@@ -228,7 +277,7 @@ def plot_soc_profile(ax,df: pd.DataFrame, v: np.array,including_loop=False,loop_
     p_out = np.where(p_mech < 0, 
                 p_mech * const.REGEN_EFFICIENCY,   # Used if p_mech is negative (Regen)
                 p_mech / const.MOTOR_EFFICIENCY)
-    curr_soc=const.START_SOC+np.cumsum((e_in-(p_out+const.POWER_LOSS)*dt))/const.BATTERY_CAPACITY
+    curr_soc = calculate_soc_with_cap(const.START_SOC, e_in, p_out, dt, const.BATTERY_CAPACITY, const.POWER_LOSS)
     all_distances=df['distances'].values
     if including_loop:
         dt=const.SEG_LENGTH/loop_profile
@@ -257,9 +306,8 @@ def plot_soc_profile(ax,df: pd.DataFrame, v: np.array,including_loop=False,loop_
         curr_p_out = np.where(p_mech < 0, 
                     p_mech * const.REGEN_EFFICIENCY,   # Used if p_mech is negative (Regen)
                     p_mech / const.MOTOR_EFFICIENCY)
-        new_soc=curr_soc[-1]+np.cumsum((e_in-(curr_p_out+const.POWER_LOSS)*dt))/const.BATTERY_CAPACITY
+        new_soc=calculate_soc_with_cap(curr_soc[-1], e_in, curr_p_out, full_dt, const.BATTERY_CAPACITY, const.POWER_LOSS)
         curr_soc=np.concatenate([curr_soc,new_soc])
-        curr_soc=np.minimum(1,curr_soc)
         # Create a matching distance array for the loops
         loop_dist_steps = np.where(indices % segments_per_loop == 0, 0, const.SEG_LENGTH)
         new_distances = df['distances'].iloc[-1] + np.cumsum(loop_dist_steps)
@@ -454,7 +502,7 @@ if __name__=="__main__":
                     result = future.result()
                     soc, t_end=future_to_scenario[future]
                     if isinstance(result,tuple):
-                        pbar.write(f"Arrival at {int(t_end//3600)}:{int((t_end%3600)//60):02d} with an SoC of {round(soc,2)} is feasible with{l_count} loops")
+                        pbar.write(f"Arrival at {int(t_end//3600)}:{int((t_end%3600)//60):02d} with an SoC of {round(soc,2)} is feasible")
                         valid_results.append(result)
                     else:
                         pbar.write(f"Not feasible for arrival at {int(t_end//3600)}:{int((t_end%3600)//60):02d} with an SoC of {round(soc,2)}")
