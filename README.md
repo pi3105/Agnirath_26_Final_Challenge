@@ -30,15 +30,15 @@ Public repo containing my code for the final challenge along with the respective
 
 ## Output
 ```
-Arrival at 11:50 with an SoC of 0.45 is feasible with10.0 loops
-Arrival at 11:40 with an SoC of 0.2 is feasible with10.0 loops
-Winner found:  18%|██████████████████                                                                                     | 2/11 [06:46<30:31, 203.49s/it]
+Arrival at 11:50 with an SoC of 0.45 is feasible
+Arrival at 11:40 with an SoC of 0.2 is feasible
+Winner found:  18%|██████████████████                                                                                     | 2/11 [07:11<32:21, 215.72s/it]
 --- OPTIMIZATION COMPLETE ---
 Reaching Zeerust with
 SOC: 0.463563891615965, Time: 11:53
 No. of loops: 9
 Total distance covered: 648800.0m
-Exeecution took 6.0m 47s
+Exeecution took 7.0m 11s
 ```
 ### Graphs generated
 #### SoC, Power output, Velocity and Acceleration Profile
